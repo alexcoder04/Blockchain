@@ -3,12 +3,15 @@ import hashlib
 from Crypto.PublicKey import RSA
 
 class Transaction:
-    def __init__(self, sender, recv, amount):
+    def __init__(self, sender, recv, amount, signature=None, time=None):
         self.sender = sender
         self.recv = recv
         self.amount = amount
-        self.time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-        self.signature = None
+        if time:
+            self.time = time
+        else:
+            self.time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+        self.signature = signature
     
     def sign(self, sender_private_key):
         if self.sender == "reward":
@@ -38,3 +41,8 @@ class Transaction:
             "time": self.time,
             "signature": self.signature
         }
+    
+    @classmethod
+    def from_json(cls, json):
+        return cls(json["sender"], json["recv"], json["amount"], json["signature"], json["time"])
+

@@ -1,4 +1,5 @@
 import hashlib
+from .transaction import Transaction
 
 class Block:
     def __init__(self, transactions, time, index, prev):
@@ -27,6 +28,13 @@ class Block:
         hash_str = (transactions_str + str(self.time) + self.prev + str(self.nonce)).encode()
         return hashlib.sha1(hash_str).hexdigest()
     
+    def valid(self):
+        # TODO implement this to check trabsactions
+        #for ta in self.transactions:
+        #    if not ta.valid():
+        #        return False
+        return self.hash == self.calculate_hash()
+    
     def json(self):
         return {
             "index": self.index,
@@ -35,3 +43,7 @@ class Block:
             "prev": self.prev,
             "hash": self.hash
         }
+    
+    @classmethod
+    def from_json(cls, json):
+        return cls([Transaction.from_json(ta) for ta in json["transactions"]], json["time"], json["index"], json["prev"])
