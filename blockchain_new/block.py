@@ -1,8 +1,10 @@
 import hashlib
 from .transaction import Transaction
+from .log import log
 
 class Block:
     def __init__(self, transactions, time, index, prev):
+        log("creating a block...")
         self.mined = False
         self.index = index
         self.time = time
@@ -13,11 +15,13 @@ class Block:
     
     def mine(self, difficulty):
         if self.mined == True:
+            log("block is already mined", "error")
             raise Exception("Trying to mine block is already mined")
         while True:
             if self.calculate_hash().startswith("0" * difficulty):
                 self.hash = self.calculate_hash()
                 self.mined = True
+                log("block is mined!")
                 break
             self.nonce += 1
     

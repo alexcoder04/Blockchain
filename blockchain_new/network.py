@@ -1,10 +1,12 @@
 import socket
 import json
 from .block import Block
+from .log import log
 
 # TODO socket connection
 class Network:
     def __init__(self, addr, nodes=None):
+        log("initializing the network connection...")
         self.ADDR = addr
         self.HEADER = 64
         self.FORMAT = "utf-8"
@@ -15,10 +17,10 @@ class Network:
             self.update_nodes()
         else:
             self.nodes_to_check = []
-        print(f"[INFO] nodes online: {self.nodes}")
+        log(f"nodes online: {self.nodes}")
     
     def update_nodes(self):
-        print("[INFO] updating nodes...")
+        log("updating nodes...")
         # TODO add singing
         if len(self.nodes_to_check) == 0:
             print("the only node in network")
@@ -26,6 +28,7 @@ class Network:
         verified_nodes = []
         new_to_check = []
         for node in self.nodes_to_check:
+            log(f"checking node {node[0]}...")
             # TODO check if node send a valid response
             verified_nodes.append(node)
             new_to_check.append(node)
@@ -35,10 +38,11 @@ class Network:
         self.nodes, self.nodes_to_check = verified_nodes, new_to_check
     
     def get_chain(self):
-        print("[INFO] loading current blockchain from the network...")
+        log("loading current blockchain from the network...")
         max_length = 0
         chain = []
         for node in self.nodes:
+            log(f"loading chain from {node[0]}...")
             new_chain = [Block.from_json(i) for i in self.request(node, "CHAIN")]
             if len(new_chain) > max_length and self.valid_chain(new_chain):
                 chain = new_chain
@@ -62,8 +66,10 @@ class Network:
         return json.loads(client.recv(length).decode(self.FORMAT))
     
     def get_pending(self):
+        log("loading pending transactions from the network...")
         pending = []
         for node in self.nodes:
+            log(f"loading transactions from {node[0]}")
             data = self.request(node, "PENDING")
             for ta in data:
                 # TODO check if transaction has been already verified
@@ -73,6 +79,7 @@ class Network:
     
     def block_mined(self, chain):
         for node in self.nodes:
+            log(f"sending 'mined' message to {node[0]}")
             self.request(node, "MINED", data=json.dumps([i.json() for i in chain]))
     
     def json(self):
