@@ -13,10 +13,12 @@ class Block:
         self.nonce = 0
         self.hash = self.calculate_hash()
     
-    def mine(self, difficulty):
+    def mine(self, difficulty, mining_func=None):
         if self.mined == True:
             log("block is already mined", "error")
             raise Exception("Trying to mine block is already mined")
+        if mining_func:
+            self.nonce = mining_func(self.copy(), difficulty)
         while True:
             if self.calculate_hash().startswith("0" * difficulty):
                 self.hash = self.calculate_hash()
@@ -47,6 +49,9 @@ class Block:
             "prev": self.prev,
             "hash": self.hash
         }
+    
+    def copy(self):
+        return Block(self.transactions, self.time, self.index, self.prev)
     
     @classmethod
     def from_json(cls, json):

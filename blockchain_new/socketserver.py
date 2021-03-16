@@ -17,7 +17,7 @@ class Socketserver:
         except OSError:
             log("the port you chose is already used", "error")
             log("Maybe another program runs on that port, you already started the blockchain or it just crashed")
-            raise Exception("Port already in use")
+            exit(1)
         else:
             log("creating and starting new thread...")
             server_thread = Thread(target=self.run)
