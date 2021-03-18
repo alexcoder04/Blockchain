@@ -6,7 +6,7 @@ from .wallet import Wallet
 from datetime import datetime
 
 class Blockchain:
-    def __init__(self, addr, wallet=None, nodes=None, difficulty=2, rewards=10):
+    def __init__(self, addr, wallet=None, nodes=None, difficulty=5, rewards=10):
         log("initializing the blockchain...")
         self.network = Network(addr, nodes)
         if wallet:
@@ -69,6 +69,9 @@ class Blockchain:
                     balance += transaction.amount
         return balance
     
+    def shutdown(self, code=0):
+        log("shutting down...")
+    
     def json(self):
         return {
             "chain": [block.json() for block in self.chain],
@@ -81,7 +84,9 @@ class Blockchain:
     
     @staticmethod
     def valid_chain(chain):
-        for i in range(chain):
-            if not chain[i].valid(chain[i - 1]):
+        for i in range(len(chain)):
+            # TODO validate prev block
+            #if not chain[i].valid(chain[i - 1]):
+            if not chain[i].valid():
                 return False
         return True

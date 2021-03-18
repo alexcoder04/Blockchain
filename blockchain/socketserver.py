@@ -2,6 +2,7 @@ import socket
 from threading import Thread
 import json
 from .log import log
+from .block import Block
 
 class Socketserver:
     def __init__(self, blockchain, addr):
@@ -12,11 +13,13 @@ class Socketserver:
         self.FORMAT = "utf-8"
         self.DISCONNECT_MSG = "!QUIT"
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             self.server.bind(self.ADDR)
         except OSError:
             log("the port you chose is already used", "error")
             log("Maybe another program runs on that port, you already started the blockchain or it just crashed")
+            self.blockchain.shutdown()
             exit(1)
         else:
             log("creating and starting new thread...")
@@ -46,6 +49,7 @@ class Socketserver:
         data = conn.recv(length)
         log(f"{addr} sent command: {command}")
         if command == "CHECK":
+            self.blockchain.network.nodes_to_check.append(addr)
             self.send(json.dumps(self.blockchain.network.json()), conn)
             return
         if command == "CHAIN":
@@ -57,8 +61,17 @@ class Socketserver:
         if command == "MINED":
             self.send("{}", conn)
             log(f"{addr} MINED A BLOCK!!!")
-            print(self.blockchain.json())
+            chain = []
+            for b in json.loads(data):
+                chain.append(Block.from_json(b))
+            self.blockchain.new_chain(chain)
             return
         log(f"{addr} sent an invalid command", "warning")
         self.send("{}", conn)
         return
+    
+    def close(self):
+        self.blockchain.shutdown()
+        self.server.shutdown(socket.SHUT_RDWR)
+        self.server.close()
+        exit(1)

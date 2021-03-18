@@ -4,7 +4,6 @@ from .log import log
 
 class Block:
     def __init__(self, transactions, time, index, prev):
-        log("creating a block...")
         self.mined = False
         self.index = index
         self.time = time
@@ -55,4 +54,5 @@ class Block:
     
     @classmethod
     def from_json(cls, json):
+        log("creating block from json...")
         return cls([Transaction.from_json(ta) for ta in json["transactions"]], json["time"], json["index"], json["prev"])

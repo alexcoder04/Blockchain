@@ -30,12 +30,17 @@ class Network:
         for node in self.nodes_to_check:
             log(f"checking node {node[0]}...")
             # TODO check if node send a valid response
+            resp = self.request(node, "CHECK")
+            if not resp and resp != []: continue
             verified_nodes.append(node)
             new_to_check.append(node)
-            for node_from_other in self.request(node, "CHECK"):
+            for node_from_other in resp:
                 if node_from_other not in new_to_check:
                     new_to_check.append(node_from_other)
         self.nodes, self.nodes_to_check = verified_nodes, new_to_check
+        if len(self.nodes) == 0:
+            log("No nodes online", "error")
+            exit(1)
     
     def get_chain(self):
         log("loading current blockchain from the network...")
@@ -51,7 +56,11 @@ class Network:
     
     def request(self, node, command, data=""):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(node)
+        try:
+            client.connect(node)
+        except ConnectionRefusedError:
+            log(f"node {node} unreachable", "error")
+            return None
 
         command += " " * (self.HEADER - len(command))
         length = str(len(data))

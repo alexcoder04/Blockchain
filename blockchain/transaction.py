@@ -5,7 +5,6 @@ from .log import log
 
 class Transaction:
     def __init__(self, sender, recv, amount, signature=None, time=None):
-        log("creating a new transaction...")
         self.sender = sender
         self.recv = recv
         self.amount = amount
