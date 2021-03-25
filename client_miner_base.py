@@ -18,7 +18,7 @@ def get_nodes(file):
         (line.split(":")[0], int(line.split(":")[1])) for line in lines
     ]
 
-IP = utils.get_ip()
+IP = "192.168.178.34" #utils.get_ip()
 PORT = int(get_option(options, "p"))
 if not PORT: PORT = 8888
 ADDR = (IP, PORT)
@@ -31,6 +31,8 @@ if SLEEP: SLEEP = float(SLEEP)
 wallet = Wallet.from_files(PRIVATE_KEY_FILE, PUBLIC_KEY_FILE)
 blockchain = Blockchain(ADDR, wallet, NODES)
 server = Socketserver(blockchain, ADDR)
+blockchain.network.update_nodes(now=True)
+blockchain.load()
 
 while True:
     try:

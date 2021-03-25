@@ -6,7 +6,7 @@ from .wallet import Wallet
 from datetime import datetime
 
 class Blockchain:
-    def __init__(self, addr, wallet=None, nodes=None, difficulty=5, rewards=10):
+    def __init__(self, addr, wallet=None, nodes=None, difficulty=2, rewards=10):
         log("initializing the blockchain...")
         self.network = Network(addr, nodes)
         if wallet:
@@ -22,16 +22,21 @@ class Blockchain:
             self.pending = []
             self.chain = [self.create_genesis_block()]
         else:
-            self.difficulty = difficulty
-            self.rewards = rewards
-            # TODO get pending, difficulty and rewards from the network
-            self.pending = [Transaction.from_json(i) for i in self.network.get_pending()]
-            self.chain = self.network.get_chain()
+            self.buffer = {}
+            self.buffer["difficulty"] = difficulty
+            self.buffer["rewards"] = rewards
+    
+    def load(self):
+        self.difficulty = self.buffer["difficulty"]
+        self.rewards = self.buffer["rewards"]
+        # TODO get pending, difficulty and rewards from the network
+        self.pending = [Transaction.from_json(i) for i in self.network.get_pending()]
+        self.chain = self.network.get_chain()
     
     def mine_pending(self, mining_func=None):
         log("creating new block...")
-        block = Block(self.pending, datetime.now(), len(self), self.last_block().hash)
-        block.mine(self.difficulty, mining_func)
+        block = Block(self.pending, datetime.now(), len(self), self.last_block().hash, self.difficulty)
+        block.mine(mining_func=mining_func)
         self.add_block(block)
         self.pending = []
         # TODO safe rewards
@@ -51,8 +56,8 @@ class Blockchain:
     
     def create_genesis_block(self):
         log("creating genesis block...")
-        block = Block([], datetime.now(), 0, "NONE")
-        block.mine(self.difficulty)
+        block = Block([], datetime.now(), 0, "NONE", self.difficulty)
+        block.mine()
         return block
     
     def new_chain(self, new_chain):

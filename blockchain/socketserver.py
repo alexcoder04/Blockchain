@@ -49,8 +49,14 @@ class Socketserver:
         data = conn.recv(length)
         log(f"{addr} sent command: {command}")
         if command == "CHECK":
-            self.blockchain.network.nodes_to_check.append(addr)
-            self.send(json.dumps(self.blockchain.network.json()), conn)
+            self.blockchain.network.nodes_to_check.append(json.loads(data))
+            resp_data = self.blockchain.network.json()
+            resp_data.append(self.ADDR)
+            print(resp_data)
+            resp = json.dumps(resp_data)
+            print(resp)
+            self.send(resp, conn)
+            #self.blockchain.network.update_nodes()
             return
         if command == "CHAIN":
             self.send(json.dumps([i.json() for i in self.blockchain.chain]), conn)
